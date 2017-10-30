@@ -1,5 +1,5 @@
 """
-This module generates polynomials of degree d.
+This module generates polynomials of degrees 1 to d.
 The generated polynomials are saved to a .csv file.
 """
 
@@ -12,8 +12,8 @@ def generatePoly(degree, numOfComplexRoots, numOfSquareRoots, rootsRange):
     This function generates a polynomial of degree 'degree'.
     Input:
         -degree: an integer specifying the degree of the polynomial to be generated.
-        -numOfComplexRoots: a boolean that specifies the number of complex roots of the polynomial to be generated.
-        -numOfSquareRoots: a boolean that specifies the number of square roots of the polynomial to be generated.
+        -numOfComplexRoots: an integer that specifies the number of complex roots of the polynomial to be generated.
+        -numOfSquareRoots: an integer that specifies the number of square roots of the polynomial to be generated.
     Output:
         a numpy array of the generated polynomial's coefficients.
     """
@@ -26,7 +26,8 @@ def generatePoly(degree, numOfComplexRoots, numOfSquareRoots, rootsRange):
     squareRealRoots = [squareRealRoots] * numOfSquareRoots
     squareRealRoots = np.array(squareRealRoots)
     roots = np.concatenate((squareRealRoots, singleRealRoots, complexRoots))
-    #generate the coefficients
+    #generate the coefficients 
+    #by doing the multiplication (x - root_1)(x - root_2)..(x - root_n)
     p = np.array([1, -roots[0]])
     for root in roots[1:]:
         p = np.convolve(p, np.array([1, -root]))
@@ -39,7 +40,7 @@ def polEval(poly, evalRange, pointsCount):
     and returns a numpy array of the input polynomial evaluations in (-evalRange, evalRange) by step=stepSize.
     """
     res = []
-    x = np.linspace(start=-evalRange, stop=evalRange, num=pointsCount,dtype=np.int)
+    x = np.linspace(start=-evalRange, stop=evalRange, num=pointsCount, dtype=np.int)
     evals = np.polyval(poly[:-3], x)
     for i in range(len(evals)):
         res.append(x[i])
@@ -55,7 +56,6 @@ def generateNPoly(n, degree, rootsRange):
     Output:
         a numpy array of polynomials coefficients.
     """
-    polysTypes = [[], [], []]
     polys = []
     for i in range(4):
         for j in range(n//(4*degree)):
@@ -93,16 +93,16 @@ def savePolys2csv(polys, degree, path):
 
 def main(args):
     polys = np.asarray(generateNPoly(args.n, args.degree, args.roots_range))
-    evals = np.asarray([ polEval(p[:-3], args.eval_range, args.degree+1) for p in polys ])
+    evals = np.asarray([polEval(p[:-3], args.eval_range, args.degree+1) for p in polys ])
     savePolys2csv(np.hstack((evals, polys)), args.degree, args.output_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--degree', help='degree of polynomials to be generated.', type=int)
-    parser.add_argument('--n', help='number of polynomials to be generated.', type=int)
-    parser.add_argument('--roots_range', help='roots will have values in [-roots_range, +roots_range].', type=int)
-    parser.add_argument('--eval_range', help='evaluations of the generated polynomials will be in [-eval_range, +eval_range].', type=int)
-    parser.add_argument('--output_path', help='path of the output file.', type=str, default='poly.csv')
+    parser.add_argument('--degree', help='The highest degree of the polynomials to be generated.', type=int)
+    parser.add_argument('--n', help='The number of the polynomials to be generated.', type=int)
+    parser.add_argument('--roots_range', help='Range of roots of the generated polynomilas [-roots_range, +roots_range].', type=int)
+    parser.add_argument('--eval_range', help='Evaluations of the generated polynomials will be in [-eval_range, +eval_range].', type=int)
+    parser.add_argument('--output_path', help='The path of the output file.', type=str, default='poly.csv')
     args = parser.parse_args()
     assert args.degree < args.eval_range, 'Upper bound of evaluation range should be greeter than degree.'
     assert args.degree < args.roots_range, 'roots_range should be greater than degree.'
